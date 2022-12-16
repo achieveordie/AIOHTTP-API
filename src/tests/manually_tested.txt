@@ -1,0 +1,5 @@
+http://localhost:8002/rates/?date_from=2016-01-01&date_to=2016-01-10&origin=CNSGH&destination=EETLL
+
+http://localhost:8002/rates?date_from=2016-01-01&date_to=2016-01-10&origin=CNSGH&destination=north_europe_main
+
+http://localhost:8002/rates?date_from=2016-01-01&date_to=2016-01-10&origin=china_south_main&destination=baltic_main
