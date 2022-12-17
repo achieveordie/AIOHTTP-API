@@ -66,10 +66,10 @@ async def rates(
     # is a failure.
     if type_date == "f_format_wrong":
         raise HTTPException(status_code=418,
-                            detail="Check Format of Provided Dates.")
+                            detail="[BAD DATA]Check Format of Provided Dates.")
     if type_date == "f_order_wrong":
         raise HTTPException(status_code=418,
-                            detail="Date From > Date To.")
+                            detail="[BAD DATA]Date From > Date To.")
 
     type_loc = location.validate(origin, destination)
 
@@ -77,7 +77,7 @@ async def rates(
     # "neither", it implies that location validation failed.
     if "neither" in type_loc:
         raise HTTPException(status_code=503,
-                            detail="Validation on location(s) are currently failing.")
+                            detail="[BAD DATA]Validation on location(s) are currently failing.")
 
     if type_loc[0] == type_loc[1] == "port":
         data = await execute_when_both_ports(
