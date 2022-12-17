@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
+"""Main file to encapsulate the functionality web app with the db."""
 import os
 import asyncpg
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 
 from .api.models import (
     PortSchema,
@@ -40,6 +42,22 @@ async def rates(
         origin: str,
         destination: str,
 ):
+    """
+    The initial and main entrypoint. It requires no path parameters and four query
+    parameters as follows:
+    :param date_from: str in format "YYYY-MM-DD"
+        The date from which data is required to be queried.
+    :param date_to: str in format "YYYY-MM-DD"
+        The date till which (inclusive) data is required to be queried.
+    :param origin: str
+        The starting location, can either be a region(main/sub/middle) slug or a port code.
+    :param destination: str
+        The ending location, can either be a region(main/sub/middle) slug or a port code.
+    :return: List[dict]
+        The keys of each element will be:
+            day: (str) representing the day for which average price is calculated.
+            average_price: (int|None) representing average price of that day from `origin` to `destination`.
+    """
     conn = connect_dict["conn"]
 
     type_date = date.validate(date_from, date_to)
@@ -47,19 +65,19 @@ async def rates(
     # type_date is a string, other than "success"
     # is a failure.
     if type_date == "f_format_wrong":
-        # To-DO: Return more readable BaseModel class
-        return {"temporary failure": "wrong format"}
+        raise HTTPException(status_code=418,
+                            detail="Check Format of Provided Dates.")
     if type_date == "f_order_wrong":
-        # To-DO: Return more readable BaseModel class
-        return {"temporary failure": "wrong order"}
+        raise HTTPException(status_code=418,
+                            detail="Date From > Date To.")
 
     type_loc = location.validate(origin, destination)
 
     # type_loc will be a 2-length tuple, if it contains
     # "neither", it implies that location validation failed.
     if "neither" in type_loc:
-        # To-DO: Return more readable BaseModel class
-        return {"temporary failure": "from validation_location"}
+        raise HTTPException(status_code=503,
+                            detail="Validation on location(s) are currently failing.")
 
     if type_loc[0] == type_loc[1] == "port":
         data = await execute_when_both_ports(
@@ -91,36 +109,43 @@ async def rates(
     return result.validate(data, date_from, date_to)
 
 
-# Only here in case one needs to do sanity-check about
-# existence of the db.
-@app.get("/rates/get_single_port/", response_model=PortSchema)
-async def single_port():
-    conn = connect_dict['conn']
-
-    data = await conn.fetchrow(
+# The following methods are only here in case one needs to
+# do sanity-check about existence of the db and
+# proper connection between db and app (for testing).
+async def _get_port():
+    """Helper private function to fetch one row from Ports table"""
+    data = await connect_dict["conn"].fetchrow(
         """SELECT * FROM Ports LIMIT 1"""
     )
-
     return dict(data)
+
+
+async def _get_price():
+    """Helper private function to fetch one row from Ports table"""
+    data = await connect_dict["conn"].fetchrow(
+        """SELECT * FROM Prices LIMIT 1"""
+    )
+    return dict(data)
+
+
+async def _get_region():
+    """Helper private function to fetch one row from Regions table"""
+    data = await connect_dict["conn"].fetchrow(
+        """SELECT * FROM Regions LIMIT 1"""
+    )
+    return dict(data)
+
+
+@app.get("/rates/get_single_port/", response_model=PortSchema)
+async def single_port():
+    return _get_port()
 
 
 @app.get("/rates/get_single_region/", response_model=RegionSchema)
 async def single_region():
-    conn = connect_dict['conn']
-
-    data = await conn.fetchrow(
-        """SELECT * FROM Regions LIMIT 1"""
-    )
-
-    return dict(data)
+    return _get_region()
 
 
 @app.get("/rates/get_single_price/", response_model=PriceSchema)
 async def single_price():
-    conn = connect_dict['conn']
-
-    data = await conn.fetchrow(
-        """SELECT * FROM Prices LIMIT 1"""
-    )
-
-    return dict(data)
+    return _get_price()

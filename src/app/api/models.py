@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+"""Basic Pydantic Models to get reference of Tables."""
 from typing import Union
 from datetime import date
 from pydantic import BaseModel

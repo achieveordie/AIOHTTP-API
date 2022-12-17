@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Tests that all validation functions perform as expectation, covering 100% coverage"""
+"""Tests that all validation functions perform as expectation, covering 100% coverage."""
 import pytest
 
-from ..app.validate import date, location, result
+from app.validate import date, location, result
 
 
 class TestDate:
@@ -68,7 +68,7 @@ class TestLocation:
         "origin_region_dest_region": 0,
     }
 
-    @pytest.mark.parameterize("origin", ["FIMTY", "norway_south_west"])
+    @pytest.mark.parametrize("origin", ["FIMTY", "norway_south_west"])
     @pytest.mark.parametrize("destination", ["RULED", "baltic"])
     def test_location(self, origin, destination):
         """Should only have one permutation of 'port'/'region'."""
@@ -120,12 +120,23 @@ class TestResult:
         """Should only iterate over 1 day as per input."""
         counter = 0
         for _ in result._daterange(
-                self.date.fromisoformat("2012-01-01"),
-                self.date.fromisoformat("2012-01-02")
+            self.date.fromisoformat("2012-01-01"),
+            self.date.fromisoformat("2012-01-01")
         ):
             counter += 1
 
         assert counter == 1
+
+    def test_2_days_iteration(self):
+        """Should only iterate over 2 days as per input."""
+        counter = 0
+        for _ in result._daterange(
+            self.date.fromisoformat("2012-01-01"),
+            self.date.fromisoformat("2012-01-02")
+        ):
+            counter += 1
+
+        assert counter == 2
 
     def test_5_days_iteration(self):
         """Should only iterate over 5 days as per input."""

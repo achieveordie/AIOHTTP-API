@@ -29,27 +29,3 @@ def validate(date_from, date_to):
         return "f_order_wrong"
 
     return "success"
-
-
-if __name__ == "__main__":
-    dates_from = [
-        "2016-12-01",
-        "2015-01-12",
-        "999-01-12",
-        "01-01-12",
-        "2000-01-090",
-        "2022-01-01",
-    ]
-
-    dates_to = [
-        "2016-12-05",
-        "2015-01-12",
-        "999-01-12",
-        "01-01-12",
-        "200-01-090",
-        "2018-01-01",
-    ]
-
-    for date_from, date_to in zip(dates_from, dates_to):
-        result = validate(date_from, date_to)
-        print(f"date_from:{date_from}, date_to:{date_to}, result:{result}")

@@ -1,12 +1,21 @@
+# -*- coding: utf-8 -*-
+"""Execute different SQL queries as per condition."""
+"""
+Please note that queries are not broken down into smaller strings
+to promote readability over a smaller file. This may result in few extra lines.
+"""
+
+
 async def _execute_get_slug_from_parent(
         conn,
         parent_slug
 ):
     """
-
-    :param conn:
-    :param parent_slug:
-    :return:
+    Helper function that is called to get regions that has this `parent_slug`.
+    :param conn: asyncpg.Connection Object
+    :param parent_slug: str
+    :return: List[str]
+        result of the query in form of a list.
     """
     data = await conn.fetch(
         f"""
@@ -37,13 +46,14 @@ async def execute_when_both_ports(
         date_to,
 ):
     """
-
-    :param conn:
-    :param origin:
-    :param destination:
-    :param date_from:
-    :param date_to:
-    :return:
+    The function that is called when `origin` and `destination` are determined to be ports by validators.
+    The simplest form of query since it only requires one query to get required data.
+    :param conn: asyncpg.Connection object
+    :param origin: str
+    :param destination: str
+    :param date_from: str in format "YYYY-MM-DD"
+    :param date_to: str in format "YYYY-MM-DD"
+    :return: List[asyncpg.Record]
     """
 
     return await conn.fetch(
@@ -69,14 +79,18 @@ async def execute_when_one_region(
         first_is_region,
 ):
     """
-
-    :param conn:
-    :param origin:
-    :param destination:
-    :param date_from:
-    :param date_to:
-    :param first_is_region:
-    :return:
+    The function that is called when either `origin` or `destination` is region (but not both).
+    A slightly more complicated querying is required since it not only requires two queries,
+    but also sub-querying in the second query.
+    :param conn: asyncpg.Connection object
+    :param origin: str
+    :param destination: str
+    :param date_from: str in format "YYYY-MM-DD"
+    :param date_to: str in format "YYYY-MM-DD"
+    :param first_is_region: bool
+        If True, then signifies that `origin` is determined to be region as per validators.
+        Else, `destination` is region.
+    :return: List[asyncpg.Record]
     """
     region = origin if first_is_region else destination
 
@@ -131,13 +145,16 @@ async def execute_when_both_region(
         date_to,
 ):
     """
-
-    :param conn:
-    :param origin:
-    :param destination:
-    :param date_from:
-    :param date_to:
-    :return:
+    Function that is called when both `origin` and `destination` are determined to be regions
+    by the validators.
+    Although it requires more querying, it is similar to above function in how it is written and smaller
+    by virtue of it being non-conditional (both origin and destination are region so requires no condition).
+    :param conn: asyncpg.Connection object
+    :param origin: str
+    :param destination: str
+    :param date_from: str in format "YYYY-MM-DD"
+    :param date_to: str in format "YYYY-MM-DD"
+    :return: List[asyncpg.Record]
     """
     data_origin = await _execute_get_slug_from_parent(conn, origin)
     data_dest = await _execute_get_slug_from_parent(conn, destination)
